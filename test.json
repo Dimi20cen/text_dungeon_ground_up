@@ -1,0 +1,87 @@
+{
+    "title": "Sample Text Game",
+    "rooms": {
+        "start": {
+            "entryRequirement": "none",
+            "warning": "none",
+            "description": "This is the new description for the start room.",
+            "items": [
+                "item1"
+            ],
+            "n": "dungeon",
+            "e": "exit"
+        },
+        "dungeon": {
+            "entryRequirement": "none",
+            "warning": "There might be skeletons around, if you dont have the defense medal it's better to avoid this room",
+            "description": "Yooo you're in the dungeon",
+            "items": [
+                "item2",
+                "item3"
+            ],
+            "s": "south/start-room"
+        },
+        "exit": {
+            "entryRequirement": "The door seems to be locked",
+            "warning": "none",
+            "description": "Woorahhhh you made it, you have escaped!",
+            "items": []
+        }
+    },
+    "enemies": {
+        "thief": {
+            "mode": "enemy",
+            "friendToken": "milk"
+        },
+        "dragon": {
+            "mode": "indifferent",
+            "friendToken": "gold"
+        },
+        "mage": {
+            "mode": "friend",
+            "friendToken": "none"
+        },
+        "skeletonQueen": {
+            "mode": "enemy",
+            "friendToken": "bone"
+        }
+    },
+    "objects": {
+        "lightItem": {
+            "used": "false",
+            "inspected": "false"
+        },
+        "bookItem": {
+            "used": "false",
+            "inspected": "false"
+        },
+        "defenceItem": {
+            "used": "false",
+            "inspected": "false"
+        },
+        "attackItem": {
+            "used": "false",
+            "inspected": "false"
+        },
+        "magicRune": {
+            "used": "false",
+            "inspected": "false"
+        },
+        "elixirItem": {
+            "used": "false",
+            "inspected": "false"
+        },
+        "keyItem": {
+            "used": "false",
+            "inspected": "false"
+        },
+        "armorItem": {
+            "used": "false",
+            "inspected": "false"
+        },
+        "containerItem": {
+            "used": "false",
+            "inspected": "false"
+        }
+    }
+}
