@@ -1,35 +1,36 @@
 {
-    "title": "Sample Text Game",
-    "genericMessages": {
-        "mapError": "Error loading map file",
-        "restart": "Game has successfully been restarted",
-        "quit": "Game has been quited",
-        "inputPrompt": "Please input a command.",
+    "openning": "Game on! Get ready for an exciting adventure!",
+    "genericMsgs": {
+        "missingCmd": "Whoops, command missing! Remember to enter your desired action before pressing enter.",
         "invalidCmd": "Invalid command.",
         "helpCmd": "Commands: n, s, w, e, take [item], use [item], look, inventory, help, restart, quit",
-        "deadend": "You can't go that way.",
-        "emptyInventory": "Your inventory is empty!"
+        "deadend": "You seem lost, try looking around to find a way",
+        "emptyInventory": "Your inventory is empty!",
+        "noItemHere": "No such item here!"
     },
     "rooms": {
         "start": {
-            "entryRequirement": "none",
+            "entryRequirement": "lol",
             "warning": "none",
             "description": "You are in the start room.",
+            "usableItems": "None",
             "items": ["item1"],
-            "n": "dungeon",
-            "e": "exit"
+            "north": "dungeon",
+            "east": "exit"
         },
         "dungeon": {
             "entryRequirement": "none",
             "warning": "There might be skeletons around, if you dont have the defense medal it's better to avoid this room",
             "description": "Yooo you're in the dungeon",
+            "usableItems": "None",
             "items": ["item2", "item3"],
-            "s": "south/start-room"
+            "south": "start"
         },
         "exit": {
             "entryRequirement": "The door seems to be locked",
             "warning": "none",
             "description": "Woorahhhh you made it, you have escaped!",
+            "usableItems": "key",
             "items": []
         }
     },
