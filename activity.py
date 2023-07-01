@@ -8,6 +8,7 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import GLib
 from gi.repository import Gdk
 from gi.repository import Gtk
+from gi.repository import GdkPixbuf
 
 from sugar3.activity import activity
 from sugar3.graphics.toolbarbox import ToolbarBox
@@ -16,7 +17,6 @@ from sugar3.graphics.radiotoolbutton import RadioToolButton
 from sugar3.graphics.toolbutton import ToolButton
 from sugar3.activity.widgets import StopButton
 from gettext import gettext as _
-import main
 
 
 class TextdungeonActivity(activity.Activity):
@@ -24,18 +24,69 @@ class TextdungeonActivity(activity.Activity):
     def __init__(self, handle):
         activity.Activity.__init__(self, handle)
         self.max_participants = 1
-        self.sound = True
 
         self.build_toolbar()
 
-        # Create your fullscreen window instance
-        self.full_screen_widget = main.FullScreenWidget()
+        # Loading image and creating pixbuf
+        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(filename='background.png', 
+                                                         width=Gdk.Screen.width(),
+                                                         height=Gdk.Screen.height(), 
+                                                         preserve_aspect_ratio=True)
+        
+        # Creating image and setting pixbuf
+        img = Gtk.Image.new_from_pixbuf(pixbuf)
+        
+        # Creating overlay and packing image
+        overlay = Gtk.Overlay()
+        overlay.add(img)
 
-        # Set the activity root window to your fullscreen window
-        self.set_canvas(self.full_screen_widget)
+        # Create textview and adjust the size
+        textview = Gtk.TextView()
+        textview.set_size_request(300, 300)
+        textview.set_wrap_mode(Gtk.WrapMode.WORD)
+        textview.set_editable(True)
 
-        # Show all elements in the activity
-        self.full_screen_widget.show_all()
+        # Creating textbuffer
+        self.textbuffer = textview.get_buffer()
+        text_to_print = "lol"
+
+
+        self.textbuffer.set_text(text_to_print, -1)
+
+        # Connect the key press event to the callback
+        textview.connect('key-press-event', self.on_key_press)
+
+        # Adding the textview to overlay
+        overlay.add_overlay(textview)
+        overlay.set_overlay_pass_through(textview, False)
+
+        # Set alignment for textview
+        textview.set_halign(Gtk.Align.CENTER)
+        textview.set_valign(Gtk.Align.CENTER)
+
+        # Add overlay as the canvas
+        self.set_canvas(overlay)
+        overlay.show_all()
+
+        # Create a string for storing input
+        self.input_string = ""
+
+    def on_key_press(self, widget, event):
+        keyname = Gdk.keyval_name(event.keyval)
+        if keyname == "Return" or keyname == "KP_Enter":
+            start_iter = self.textbuffer.get_start_iter()
+            end_iter = self.textbuffer.get_end_iter()
+            current_text = self.textbuffer.get_text(start_iter, end_iter, True)
+
+            # Add current text to input string
+            self.input_string += current_text + "\n"
+            print(current_text)
+            print("\n\n\n\n")
+            current_text = ""
+
+            new_text = "\n>"
+            self.textbuffer.insert(end_iter, new_text)
+            return True
 
     def build_toolbar(self):
 
