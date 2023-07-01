@@ -200,6 +200,6 @@ class Player:
             print('You have: ' + ', '.join(self.data['inventory']))
 
 
-if __name__ == '__main__':
-    game = Game('orig_map.json')
-    game.play()
+# if __name__ == '__main__':
+#     game = Game('orig_map.json')
+#     game.play()

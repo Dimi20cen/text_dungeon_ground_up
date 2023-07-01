@@ -1,94 +1,90 @@
 {
-    "openning": "Game on! Get ready for an exciting adventure!",
-    "genericMsgs": {
-        "missingCmd": "Whoops, command missing! Remember to enter your desired action before pressing enter.",
-        "invalidCmd": "Invalid command.",
-        "helpCmd": "Commands: n, s, w, e, take [item], use [item], look, inventory, help, restart, quit",
-        "deadend": "You seem lost, try looking around to find a way",
-        "emptyInventory": "Your inventory is empty!",
-        "noItemHere": "No such item here!"
-    },
+    "openning": "Welcome to the Magical Kingdom! Your mission is to find magical items and make friends with magical creatures. Type 'help' if you're unsure what to do.",
     "rooms": {
-        "start": {
-            "entryRequirement": "lol",
-            "warning": "none",
-            "description": "You are in the start room.",
-            "usableItems": "None",
-            "items": ["item1"],
-            "north": "dungeon",
-            "east": "exit"
-        },
-        "dungeon": {
-            "entryRequirement": "none",
-            "warning": "There might be skeletons around, if you dont have the defense medal it's better to avoid this room",
-            "description": "Yooo you're in the dungeon",
-            "usableItems": "None",
-            "items": ["item2", "item3"],
-            "south": "start"
-        },
-        "exit": {
-            "entryRequirement": "The door seems to be locked",
-            "warning": "none",
-            "description": "Woorahhhh you made it, you have escaped!",
-            "usableItems": "key",
-            "items": []
-        }
+      "start": {
+        "name": "Castle",
+        "description": "You are in the Castle, where your adventure starts.",
+        "north": "Forest",
+        "south": "Lake",
+        "west": "Mountain",
+        "east": "Village",
+        "items": ["Silver Key"],
+        "npc": "none",
+        "npcType": "none",
+        "requiredItem": "none",
+        "failToEnter": "The Castle door is locked."
+      },
+      "Forest": {
+        "name": "Forest",
+        "description": "You are in a green Forest. The trees here whisper ancient tales.",
+        "south": "Castle",
+        "items": ["Magic Stone"],
+        "npc": "Elf",
+        "npcType": "traders",
+        "requiredItem": "none"
+      },
+      "Lake": {
+        "name": "Lake",
+        "description": "You are by a mystical Lake. It shimmers with magical light.",
+        "north": "Castle",
+        "items": ["Golden Fish"],
+        "npc": "Mermaid",
+        "npcType": "traders",
+        "requiredItem": "none"
+      },
+      "Mountain": {
+        "name": "Mountain",
+        "description": "You are on a high Mountain. Its peak is lost in the clouds.",
+        "east": "Castle",
+        "items": ["Crystal Flower"],
+        "npc": "Dragon",
+        "npcType": "traders",
+        "requiredItem": "none"
+      },
+      "Village": {
+        "name": "Village",
+        "description": "You are in a quaint Village. Its inhabitants are friendly magical creatures.",
+        "west": "Castle",
+        "items": [],
+        "npc": "none",
+        "npcType": "none",
+        "requiredItem": "Silver Key",
+        "failToEnter": "The Village gate is locked."
+      },
+      "exit": {
+        "name": "exit",
+        "description": "Congratulations! You've made friends with all the magical creatures and completed your adventure. Thank you for playing!"
+      }
     },
-    "enemies": {
-        "thief": {
-            "mode": "enemy",
-            "friendToken": "milk"
+    "npcs": {
+      "traders": {
+        "Elf": {
+          "desires": "Silver Key",
+          "sells": "Elf Blessing",
+          "youLose": "Without the Silver Key, the Elf refuses to bless you.",
+          "youCannotLose": "You don't have the Silver Key, but the Elf doesn't seem to mind."
         },
-        "dragon": {
-            "mode": "indifferent",
-            "friendToken": "gold"
+        "Mermaid": {
+          "desires": "Golden Fish",
+          "sells": "Mermaid Song",
+          "youLose": "Without the Golden Fish, the Mermaid refuses to sing for you.",
+          "youCannotLose": "You don't have the Golden Fish, but the Mermaid doesn't seem to mind."
         },
-        "mage": {
-            "mode": "friend",
-            "friendToken": "none"
-        },
-        "skeletonQueen": {
-            "mode": "enemy",
-            "friendToken": "bone"
+        "Dragon": {
+          "desires": "Crystal Flower",
+          "sells": "Dragon's Fire",
+          "youLose": "Without the Crystal Flower, the Dragon refuses to give you its fire.",
+          "youCannotLose": "You don't have the Crystal Flower, but the Dragon doesn't seem to mind."
         }
+      }
     },
-    "objects": {
-        "lightItem": {
-            "used": "false",
-            "inspected": "false"
-        },
-        "bookItem": {
-            "used": "false",
-            "inspected": "false"
-
-        },
-        "defenceItem": {
-            "used": "false",
-            "inspected": "false"
-        },
-        "attackItem": {
-            "used": "false",
-            "inspected": "false"
-        },
-        "magicRune": {
-            "used": "false",
-            "inspected": "false"
-        },
-        "elixirItem": {
-            "used": "false",
-            "inspected": "false"
-        },
-        "keyItem": {
-            "used": "false",
-            "inspected": "false"
-        },
-        "armorItem": {
-            "used": "false",
-            "inspected": "false"
-        },
-        "containerItem": {
-            "used": "false",
-            "inspected": "false"
-        } 
+    "inventory": [],
+    "genericMsgs": {
+      "missingCmd": "You didn't do anything.",
+      "invalidCmd": "That's not something you can do. Type 'help' if you're unsure what to do.",
+      "deadend": "There's nothing in that direction.",
+      "helpCmd": "Possible commands are 'north', 'south', 'west', 'east', 'look', 'take <item>', 'use <item>', 'inventory', 'restart', 'quit'.",
+      "noItemHere": "There's no such item here."
+    }
   }
-}
+  
