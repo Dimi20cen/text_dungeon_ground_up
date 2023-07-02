@@ -4,17 +4,60 @@ import shutil
 import os
 import atexit
 
+import gi
+gi.require_version('Gtk', '3.0')
+from gi.repository import Gtk, GLib
+
+
+class GameWindow(Gtk.Window):
+    def __init__(self):
+        super(GameWindow, self).__init__(title="Game")
+
+        # Create a vertical box to stack widgets
+        self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        self.add(self.vbox)
+
+        # Create a textview to show the game output
+        self.textview = Gtk.TextView()
+        self.textview.set_editable(False)
+        self.vbox.pack_start(self.textview, True, True, 0)
+
+        # Create an entry for player's input
+        self.entry = Gtk.Entry()
+        self.vbox.pack_start(self.entry, False, True, 0)
+
+        # When the enter key is pressed in the entry, call on_activate
+        self.entry.connect("activate", self.on_activate)
+
+    def set_game(self, game):
+        self.game = game
+
+    def on_activate(self, widget):
+        command = widget.get_text()
+        widget.set_text("")
+        self.game.process_command(command)
+
+    def append_text(self, text):
+        buffer = self.textview.get_buffer()
+        buffer.insert_at_cursor(text + "\n")
+
+    # This will be called instead of print
+    def print_to_textview(self, text):
+        self.append_text(text + '\n')
+
 
 class Game:
-    def __init__(self, map_file):
+    def __init__(self, map_file, game_window):
         self.map_file = map_file
         self.data = self.load_map(map_file)
+        self.game_window = game_window
+
         if not self.data:
             sys.exit('Error loading map file.')
         atexit.register(self.quit_game)
 
         self.player = Player(self.data, self)
-        self.current_room = Room(self.data["rooms"].get("start"), self.data)
+        self.current_room = Room(self.data["rooms"].get("start"), self.data, self)
 
         self.command_palette = {
             'north': self.move_player,
@@ -58,7 +101,7 @@ class Game:
 
             if required_item != "none":
                 if required_item not in self.data["inventory"]:
-                    print(self.data['rooms'][new_room_name]['failToEnter'])
+                    self.print(self.data['rooms'][new_room_name]['failToEnter'])
                     return
 
             self.npc_interactions(new_room_name)
@@ -72,22 +115,22 @@ class Game:
         npc_type = self.data['rooms'][room_name].get('npcType')
         if npc_type != "none":
             if self.data['npcs'][npc_type].get('toDefeat') in self.data["inventory"]:
-                print(self.data['npcs'][npc_type].get('youWin'))
+                self.print(self.data['npcs'][npc_type].get('youWin'))
                 if self.data['npcs'][npc_type] == "enemies":
                     self.data['rooms'][room_name]['npcType'] = 'none'
                     self.data['rooms'][room_name]['npc'] = 'none'
             else:
                 if npc_type == "enemies":
-                    print(self.data['npcs'][npc_type].get('youLose'))
+                    self.print(self.data['npcs'][npc_type].get('youLose'))
                     self.restart_game()
                 if npc_type == "thieves":
                     item_to_remove = self.data['npcs'][npc_type]["desires"]
                     if item_to_remove in self.data['inventory']:
                         self.data['inventory'].remove(item_to_remove)
                         self.modify_map(self.data)
-                        print(self.data['npcs'][npc_type].get('youLose'))
+                        self.print(self.data['npcs'][npc_type].get('youLose'))
                     else:
-                        print(self.data['npcs'][npc_type].get('youCannotLose'))
+                        self.print(self.data['npcs'][npc_type].get('youCannotLose'))
                         self.modify_map(self.data)
 
     """This function allows the player to examine their surroundings,
@@ -95,60 +138,67 @@ class Game:
     def look_around(self):
         for direction in ['north', 'south', 'west', 'east']:
             if direction in self.current_room.room_data:
-                print(f'To the {direction} you see a {self.current_room.room_data[direction]}')
+                self.print(f'To the {direction} you see a {self.current_room.room_data[direction]}')
+    """Prints to gtk.textview instead of console"""
+    def print(self, text):
+        self.game_window.print_to_textview(text)
 
-    """The main game loop. This function runs continuously until the game ends,
-    processing player inputs and responding accordingly."""
     def play(self):
-        print(self.data['openning'])
+        # Replace print with self.print
+        self.print(self.data['openning'])
         self.current_room.describe_room()
-        while True:
-            if self.current_room.room_data.get('name') == 'exit':
-                self.restart_game()
-            command = input('>').split()
-            print('')
-            if len(command) == 0:
-                print(self.data['genericMsgs']['missingCmd'])
-                continue
 
-            full_directions = {'n': 'north', 's': 'south', 'w': 'west', 'e': 'east',
-                               'h': 'help', 'i': 'inventory', 'l': 'look'}
-            action = full_directions.get(command[0].lower(), command[0].lower())
+    def process_command(self, command):
+        command = command.split()
 
-            if action in self.command_palette:
-                if action in ['inventory', 'look', 'help', 'quit', 'restart']:
-                    self.command_palette[action]()
-                elif action in ['north', 'south', 'west', 'east']:
-                    self.command_palette[action](action)
-                else:
-                    item = ' '.join(command[1:])
-                    self.command_palette[action](item, self.current_room)
+        if len(command) == 0:
+            self.print(self.data['genericMsgs']['missingCmd'])
+            return
+
+        full_directions = {'n': 'north', 's': 'south', 'w': 'west', 'e': 'east',
+                        'h': 'help', 'i': 'inventory', 'l': 'look'}
+        action = full_directions.get(command[0].lower(), command[0].lower())
+
+        if action in self.command_palette:
+            if action in ['inventory', 'look', 'help', 'quit', 'restart']:
+                self.command_palette[action]()
+            elif action in ['north', 'south', 'west', 'east']:
+                self.command_palette[action](action)
             else:
-                print(self.data['genericMsgs']['invalidCmd'])
+                item = ' '.join(command[1:])
+                self.command_palette[action](item, self.current_room)
+        else:
+            self.print(self.data['genericMsgs']['invalidCmd'])
+
+        if self.current_room.room_data.get('name') == 'exit':
+            self.restart_game()
+
+        # Ensure the room is described again after a command is processed.
+        self.current_room.describe_room()
 
     def print_help(self):
-        print(self.data['genericMsgs']['helpCmd'])
+        self.print(self.data['genericMsgs']['helpCmd'])
 
     def restart_game(self):
-        print("Game has successfully been restarted")
-        self.__init__(self.map_file)
+        self.print("Game has successfully been restarted")
 
     def quit_game(self):
         if os.path.exists('map_copy.json'):
             os.remove('map_copy.json')
-        print("Quitting the game...")
+        self.print("Quitting the game...")
 
 
 class Room:
-    def __init__(self, room_data, data):
+    def __init__(self, room_data, data, game):
         self.room_data = room_data
         self.data = data
+        self.game = game
 
     """This function is called when player enters a room"""
     def describe_room(self):
-        print(self.room_data['description'])
+        self.game.print(self.room_data['description'])
         if self.room_data['items']:
-            print('You see: ' + ', '.join(self.room_data['items']))
+            self.game.print('You see: ' + ', '.join(self.room_data['items']))
 
     """This function checks if a move in the given direction is possible.
     If not, it informs the player they've hit a dead end."""
@@ -156,7 +206,7 @@ class Room:
         if direction in self.room_data:
             return self.room_data[direction]
         else:
-            print(self.data['genericMsgs']['deadend'])
+            self.game.print(self.data['genericMsgs']['deadend'])
             return None
 
 
@@ -170,9 +220,10 @@ class Player:
             self.data['inventory'].append(item)
             room.room_data['items'].remove(item)
             self.game.modify_map(self.data)
-            print(f'You now have the {item}.')
+            self.game.print(f'You now have the {item}.')
         else:
-            print(self.data['genericMsgs']['noItemHere'])
+            self.game.print(self.data['genericMsgs']['noItemHere'])
+
 
     """This function allows the player to use an item from their inventory.
     If the room has a trader NPC,
@@ -187,19 +238,23 @@ class Player:
                     sells_item = self.data['npcs'][npc_type]['sells']
                     self.data['inventory'].append(sells_item)
                     self.game.modify_map(self.data)
-                    print(f"You successfully traded your {item} with the {sells_item}!")
+                    self.game.print(f"You successfully traded your {item} with the {sells_item}!")
             else:
-                print(f"You can't use your {item} here, try in a different room!")
+                self.game.print(f"You can't use your {item} here, try in a different room!")
         else:
-            print('You do not have such item in your inventory.')
+            self.game.print('You do not have such item in your inventory.')
 
     def check_inventory(self):
         if not self.data['inventory']:
-            print(self.data['genericMsgs']['emptyInventory'])
+            self.game.print(self.data['genericMsgs']['emptyInventory'])
         else:
-            print('You have: ' + ', '.join(self.data['inventory']))
+            self.game.print('You have: ' + ', '.join(self.data['inventory']))
 
 
-# if __name__ == '__main__':
-#     game = Game('orig_map.json')
-#     game.play()
+if __name__ == '__main__':
+    game_window = GameWindow()
+    game = Game('orig_map.json', game_window)
+    game_window.set_game(game)
+    game_window.connect("destroy", Gtk.main_quit)
+    game_window.show_all()
+    Gtk.main()
