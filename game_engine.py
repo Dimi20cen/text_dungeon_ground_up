@@ -9,43 +9,6 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GLib
 
 
-class GameWindow(Gtk.Window):
-    def __init__(self):
-        super(GameWindow, self).__init__(title="Game")
-
-        # Create a vertical box to stack widgets
-        self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
-        self.add(self.vbox)
-
-        # Create a textview to show the game output
-        self.textview = Gtk.TextView()
-        self.textview.set_editable(False)
-        self.vbox.pack_start(self.textview, True, True, 0)
-
-        # Create an entry for player's input
-        self.entry = Gtk.Entry()
-        self.vbox.pack_start(self.entry, False, True, 0)
-
-        # When the enter key is pressed in the entry, call on_activate
-        self.entry.connect("activate", self.on_activate)
-
-    def set_game(self, game):
-        self.game = game
-
-    def on_activate(self, widget):
-        command = widget.get_text()
-        widget.set_text("")
-        self.game.process_command(command)
-
-    def append_text(self, text):
-        buffer = self.textview.get_buffer()
-        buffer.insert_at_cursor(text + "\n")
-
-    # This will be called instead of print
-    def print_to_textview(self, text):
-        self.append_text(text + '\n')
-
-
 class Game:
     def __init__(self, map_file, game_window):
         self.map_file = map_file
@@ -251,10 +214,10 @@ class Player:
             self.game.print('You have: ' + ', '.join(self.data['inventory']))
 
 
-if __name__ == '__main__':
-    game_window = GameWindow()
-    game = Game('orig_map.json', game_window)
-    game_window.set_game(game)
-    game_window.connect("destroy", Gtk.main_quit)
-    game_window.show_all()
-    Gtk.main()
+# if __name__ == '__main__':
+#     game_window = GameWindow()
+#     game = Game('orig_map.json', game_window)
+#     game_window.set_game(game)
+#     game_window.connect("destroy", Gtk.main_quit)
+#     game_window.show_all()
+#     Gtk.main()

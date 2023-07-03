@@ -17,10 +17,10 @@ from sugar3.graphics.radiotoolbutton import RadioToolButton
 from sugar3.graphics.toolbutton import ToolButton
 from sugar3.activity.widgets import StopButton
 from gettext import gettext as _
+from game_engine import Game
 
 
 class TextdungeonActivity(activity.Activity):
-
     def __init__(self, handle):
         activity.Activity.__init__(self, handle)
         self.max_participants = 1
@@ -40,53 +40,45 @@ class TextdungeonActivity(activity.Activity):
         overlay = Gtk.Overlay()
         overlay.add(img)
 
-        # Create textview and adjust the size
-        textview = Gtk.TextView()
-        textview.set_size_request(300, 300)
-        textview.set_wrap_mode(Gtk.WrapMode.WORD)
-        textview.set_editable(True)
+        # Create a vertical box to stack widgets
+        self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        overlay.add_overlay(self.vbox)
+        self.vbox.set_halign(Gtk.Align.CENTER)
+        self.vbox.set_valign(Gtk.Align.CENTER)
 
-        # Creating textbuffer
-        self.textbuffer = textview.get_buffer()
-        text_to_print = "lol"
+        # Create a textview to show the game output
+        self.textview = Gtk.TextView()
+        self.textview.set_size_request(300, 300)
+        self.textview.set_wrap_mode(Gtk.WrapMode.WORD)
+        self.textview.set_editable(False)
+        self.vbox.pack_start(self.textview, True, True, 0)
 
+        # Create an entry for player's input
+        self.entry = Gtk.Entry()
+        self.vbox.pack_start(self.entry, False, True, 0)
 
-        self.textbuffer.set_text(text_to_print, -1)
-
-        # Connect the key press event to the callback
-        textview.connect('key-press-event', self.on_key_press)
-
-        # Adding the textview to overlay
-        overlay.add_overlay(textview)
-        overlay.set_overlay_pass_through(textview, False)
-
-        # Set alignment for textview
-        textview.set_halign(Gtk.Align.CENTER)
-        textview.set_valign(Gtk.Align.CENTER)
+        # When the enter key is pressed in the entry, call on_activate
+        self.entry.connect("activate", self.on_activate)
 
         # Add overlay as the canvas
         self.set_canvas(overlay)
         overlay.show_all()
 
-        # Create a string for storing input
-        self.input_string = ""
+        # Create the game and set it in the game window
+        self.game = Game('orig_map.json', self)
+        
+    def on_activate(self, widget):
+        command = widget.get_text()
+        widget.set_text("")
+        self.game.process_command(command)
 
-    def on_key_press(self, widget, event):
-        keyname = Gdk.keyval_name(event.keyval)
-        if keyname == "Return" or keyname == "KP_Enter":
-            start_iter = self.textbuffer.get_start_iter()
-            end_iter = self.textbuffer.get_end_iter()
-            current_text = self.textbuffer.get_text(start_iter, end_iter, True)
+    def append_text(self, text):
+        buffer = self.textview.get_buffer()
+        buffer.insert_at_cursor(text + "\n")
 
-            # Add current text to input string
-            self.input_string += current_text + "\n"
-            print(current_text)
-            print("\n\n\n\n")
-            current_text = ""
-
-            new_text = "\n>"
-            self.textbuffer.insert(end_iter, new_text)
-            return True
+    # This will be called instead of print
+    def print_to_textview(self, text):
+        self.append_text(text + '\n')
 
     def build_toolbar(self):
 
