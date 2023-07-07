@@ -27,12 +27,51 @@ class TextdungeonActivity(activity.Activity):
 
         self.build_toolbar()
 
+        self.create_menu()
+
+    def create_menu(self):
+        # Loading menu background image and creating pixbuf
+        menu_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(filename='menu_background.jpeg', 
+                                                              width=Gdk.Screen.width(),
+                                                              height=Gdk.Screen.height(), 
+                                                              preserve_aspect_ratio=True)
+
+
+        # Creating image and setting pixbuf
+        menu_img = Gtk.Image.new_from_pixbuf(menu_pixbuf)
+        
+        # Creating overlay and packing image
+        menu_overlay = Gtk.Overlay()
+        menu_overlay.add(menu_img)
+
+        # Create a vertical box to stack widgets
+        self.menu_vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        menu_overlay.add_overlay(self.menu_vbox)
+        self.menu_vbox.set_halign(Gtk.Align.CENTER)
+        self.menu_vbox.set_valign(Gtk.Align.CENTER)
+
+        # Create three buttons
+        for i in range(1, 4):
+            button = Gtk.Button(label="Button " + str(i))
+            button.connect("clicked", self.on_button_clicked, i)
+            self.menu_vbox.pack_start(button, True, True, 0)
+
+        # Add overlay as the canvas
+        self.set_canvas(menu_overlay)
+        menu_overlay.show_all()
+
+    def on_button_clicked(self, button, button_number):
+        self.create_game_screen(button_number)
+        self.start_game(button_number)
+
+    def create_game_screen(self, level):
         # Loading image and creating pixbuf
-        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(filename='background.png', 
+        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(filename=f'background{level}.jpg', 
                                                          width=Gdk.Screen.width(),
                                                          height=Gdk.Screen.height(), 
                                                          preserve_aspect_ratio=True)
-        
+
+
         # Creating image and setting pixbuf
         img = Gtk.Image.new_from_pixbuf(pixbuf)
         
@@ -48,10 +87,16 @@ class TextdungeonActivity(activity.Activity):
 
         # Create a textview to show the game output
         self.textview = Gtk.TextView()
-        self.textview.set_size_request(300, 300)
         self.textview.set_wrap_mode(Gtk.WrapMode.WORD)
         self.textview.set_editable(False)
-        self.vbox.pack_start(self.textview, True, True, 0)
+
+        # Add TextView to a ScrolledWindow
+        self.scrolled_window = Gtk.ScrolledWindow()
+        self.scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        self.scrolled_window.set_size_request(300, 300)
+
+        self.scrolled_window.add(self.textview)
+        self.vbox.pack_start(self.scrolled_window, True, True, 0)
 
         # Create an entry for player's input
         self.entry = Gtk.Entry()
@@ -64,9 +109,14 @@ class TextdungeonActivity(activity.Activity):
         self.set_canvas(overlay)
         overlay.show_all()
 
+    def start_game(self, level):
         # Create the game and set it in the game window
-        self.game = Game('orig_map.json', self)
-        
+        self.game = Game(f'orig_map{level}.json', self)
+
+    def clear_textview(self):
+        buffer = self.textview.get_buffer()
+        buffer.set_text("")
+
     def on_activate(self, widget):
         command = widget.get_text()
         widget.set_text("")
@@ -79,9 +129,14 @@ class TextdungeonActivity(activity.Activity):
     # This will be called instead of print
     def print_to_textview(self, text):
         self.append_text(text + '\n')
+        GLib.idle_add(self.scroll_to_bottom)
+
+    def scroll_to_bottom(self):
+        buffer = self.textview.get_buffer()
+        mark = buffer.get_insert()
+        GLib.idle_add(self.textview.scroll_to_mark, mark, 0.0, True, 0.0, 1.0)
 
     def build_toolbar(self):
-
         toolbar_box = ToolbarBox()
         activity_button = ActivityToolbarButton(self)
         toolbar_box.toolbar.insert(activity_button, -1)
@@ -89,51 +144,9 @@ class TextdungeonActivity(activity.Activity):
 
         separator = Gtk.SeparatorToolItem()
         separator.props.draw = False
-        separator.set_expand(False)
+        separator.set_expand(True)
         toolbar_box.toolbar.insert(separator, -1)
         separator.show()
-
-        self._levels_buttons = []
-
-        def add_level_button(icon_name, tooltip, numeric_level):
-            if self._levels_buttons:
-                button = RadioToolButton(icon_name=icon_name,
-                                         group=self._levels_buttons[0])
-            else:
-                button = RadioToolButton(icon_name=icon_name)
-            self._levels_buttons.append(button)
-
-            def callback(source):
-                if source.get_active():
-                    self.game.set_level(numeric_level)
-                    self.game.run()
-
-            button.connect('clicked', callback)
-            button.set_tooltip(tooltip)
-
-        add_level_button('male-7', _("Hard"), 3)
-        add_level_button('male-4', _("Medium"), 2)
-        add_level_button('male-1', _("Easy"), 1)
-
-        for button in self._levels_buttons[::-1]:
-            toolbar_box.toolbar.insert(button, -1)
-
-        separator2 = Gtk.SeparatorToolItem()
-        separator2.props.draw = True
-        separator2.set_expand(False)
-        toolbar_box.toolbar.insert(separator2, -1)
-        separator2.show()
-
-        button = ToolButton('speaker-muted-100')
-        button.set_tooltip(_('Sound'))
-        button.connect('clicked', self.sound_control)
-        toolbar_box.toolbar.insert(button, -1)
-
-        separator3 = Gtk.SeparatorToolItem()
-        separator3.props.draw = False
-        separator3.set_expand(True)
-        toolbar_box.toolbar.insert(separator3, -1)
-        separator3.show()
 
         stop_button = StopButton(self)
         toolbar_box.toolbar.insert(stop_button, -1)
@@ -142,13 +155,3 @@ class TextdungeonActivity(activity.Activity):
         self.set_toolbar_box(toolbar_box)
         toolbar_box.show()
         self.show_all()
-
-    def sound_control(self, button):
-        self.sound = not self.sound
-        self.game.sound = self.sound
-        if not self.sound:
-            button.set_icon_name('speaker-muted-000')
-            button.set_tooltip(_('No sound'))
-        else:
-            button.set_icon_name('speaker-muted-100')
-            button.set_tooltip(_('Sound'))
