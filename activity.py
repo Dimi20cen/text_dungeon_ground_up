@@ -13,10 +13,7 @@ from gi.repository import GdkPixbuf
 from sugar3.activity import activity
 from sugar3.graphics.toolbarbox import ToolbarBox
 from sugar3.activity.widgets import ActivityToolbarButton
-from sugar3.graphics.radiotoolbutton import RadioToolButton
-from sugar3.graphics.toolbutton import ToolButton
 from sugar3.activity.widgets import StopButton
-from gettext import gettext as _
 from game_engine import Game
 
 
@@ -31,21 +28,22 @@ class TextdungeonActivity(activity.Activity):
 
     def create_menu(self):
         # Loading menu background image and creating pixbuf
-        menu_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(filename='menu_background.jpeg', 
-                                                              width=Gdk.Screen.width(),
-                                                              height=Gdk.Screen.height(), 
-                                                              preserve_aspect_ratio=True)
-
+        menu_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
+            filename='backgrounds/menu_background.jpg',
+            width=Gdk.Screen.width(),
+            height=Gdk.Screen.height(),
+            preserve_aspect_ratio=True)
 
         # Creating image and setting pixbuf
         menu_img = Gtk.Image.new_from_pixbuf(menu_pixbuf)
-        
+
         # Creating overlay and packing image
         menu_overlay = Gtk.Overlay()
         menu_overlay.add(menu_img)
 
         # Create a vertical box to stack widgets
-        self.menu_vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        self.menu_vbox = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL, spacing=6)
         menu_overlay.add_overlay(self.menu_vbox)
         self.menu_vbox.set_halign(Gtk.Align.CENTER)
         self.menu_vbox.set_valign(Gtk.Align.CENTER)
@@ -66,21 +64,22 @@ class TextdungeonActivity(activity.Activity):
 
     def create_game_screen(self, level):
         # Loading image and creating pixbuf
-        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(filename=f'background{level}.jpg', 
-                                                         width=Gdk.Screen.width(),
-                                                         height=Gdk.Screen.height(), 
-                                                         preserve_aspect_ratio=True)
-
+        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
+            filename=f'backgrounds/background{level}.jpg',
+            width=Gdk.Screen.width(),
+            height=Gdk.Screen.height(),
+            preserve_aspect_ratio=True)
 
         # Creating image and setting pixbuf
         img = Gtk.Image.new_from_pixbuf(pixbuf)
-        
+
         # Creating overlay and packing image
         overlay = Gtk.Overlay()
         overlay.add(img)
 
         # Create a vertical box to stack widgets
-        self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        self.vbox = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL, spacing=6)
         overlay.add_overlay(self.vbox)
         self.vbox.set_halign(Gtk.Align.CENTER)
         self.vbox.set_valign(Gtk.Align.CENTER)
@@ -92,7 +91,8 @@ class TextdungeonActivity(activity.Activity):
 
         # Add TextView to a ScrolledWindow
         self.scrolled_window = Gtk.ScrolledWindow()
-        self.scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        self.scrolled_window.set_policy(
+            Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         self.scrolled_window.set_size_request(300, 300)
 
         self.scrolled_window.add(self.textview)
@@ -108,10 +108,11 @@ class TextdungeonActivity(activity.Activity):
         # Add overlay as the canvas
         self.set_canvas(overlay)
         overlay.show_all()
+        self.entry.grab_focus()
 
     def start_game(self, level):
         # Create the game and set it in the game window
-        self.game = Game(f'orig_map{level}.json', self)
+        self.game = Game(f'maps/map{level}.json', self)
 
     def clear_textview(self):
         buffer = self.textview.get_buffer()

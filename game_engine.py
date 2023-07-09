@@ -6,14 +6,14 @@ import atexit
 
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, GLib
-
 
 
 class Game:
     def __init__(self, map_file, game_window):
         self.map_file = map_file
+        print(map_file)
         self.data = self.load_map(map_file)
+        print("lol")
         self.game_window = game_window
 
         if not self.data:
@@ -21,7 +21,8 @@ class Game:
         atexit.register(self.quit_game)
 
         self.player = Player(self.data, self)
-        self.current_room = Room(self.data["rooms"].get(self.data["currentRoom"]), self.data, self)
+        self.current_room = Room(
+            self.data["rooms"].get(self.data["currentRoom"]), self.data, self)
 
         self.command_palette = {
             'north': self.move_player,
@@ -42,17 +43,18 @@ class Game:
     create one. Read copied file and load it's contents
     game_data"""
     def load_map(self, filename):
-        if os.path.exists(f'copy_{filename}'):
+        copy_filename = filename.replace('maps/', 'temp_')
+        if os.path.exists(copy_filename):
             try:
-                with open(f'copy_{filename}', 'r') as f:
+                with open(copy_filename, 'r') as f:
                     game_data = json.load(f)
                     return game_data
-            except:
+            except json.JSONDecodeError:
                 sys.exit(f'Issue with copy_{filename}')
         else:
             try:
-                shutil.copyfile(filename, f'copy_{filename}')
-                with open(f'copy_{filename}', 'r') as f:
+                shutil.copyfile(filename, copy_filename)
+                with open(copy_filename, 'r') as f:
                     game_data = json.load(f)
                     return game_data
             except FileNotFoundError:
@@ -134,7 +136,7 @@ class Game:
             return
 
         full_directions = {'n': 'north', 's': 'south', 'w': 'west', 'e': 'east',
-                        'h': 'help', 'i': 'inventory', 'l': 'look'}
+                                'h': 'help', 'i': 'inventory', 'l': 'look'}
         action = full_directions.get(command[0].lower(), command[0].lower())
 
         if action in self.command_palette:
@@ -220,7 +222,6 @@ class Player:
         else:
             self.game.print(self.data['genericMsgs']['noItemHere'])
 
-
     """This function allows the player to use an item from their inventory.
     If the room has a trader NPC,
     the player can trade with the NPC."""
@@ -249,7 +250,7 @@ class Player:
 
 # if __name__ == '__main__':
 #     game_window = GameWindow()
-#     game = Game('orig_map.json', game_window)
+#     game = Game('maps/map.json', game_window)
 #     game_window.set_game(game)
 #     game_window.connect("destroy", Gtk.main_quit)
 #     game_window.show_all()
