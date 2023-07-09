@@ -43,7 +43,7 @@ class Game:
     create one. Read copied file and load it's contents
     game_data"""
     def load_map(self, filename):
-        copy_filename = filename.replace('maps/', 'temp_')
+        copy_filename = filename.replace('maps/', 'tmp_')
         if os.path.exists(copy_filename):
             try:
                 with open(copy_filename, 'r') as f:
